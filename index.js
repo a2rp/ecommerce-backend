@@ -5,24 +5,23 @@ const cors = require("cors");
 const connectDB = require("./src/config/connectDB");
 
 const app = express();
-// ✅ CORS Origin Whitelist
+
 const allowedOrigins = [
-    "http://localhost:5173", // local dev
-    "https://ecommerce-mern-store.netlify.app", // deployed Netlify
-    // Add more domains here if needed
+    "http://localhost:5173",
+    "https://ecommerce-mern-store.netlify.app",
 ];
-// ✅ Custom CORS config
+
 app.use(
     cors({
         origin: function (origin, callback) {
             if (!origin) return callback(null, true);
             if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
+                return callback(null, origin); // ✅ return the origin itself, not true
             } else {
                 return callback(new Error("Not allowed by CORS"));
             }
         },
-        credentials: true,
+        credentials: true, // ✅ REQUIRED when using cookies or withCredentials
     })
 );
 
