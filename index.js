@@ -27,24 +27,40 @@ app.use(
 
 app.use(express.json()); // For parsing JSON
 app.use(express.json({ limit: "10mb" }));
-app.use("/uploads", express.static("uploads"));
 
 // Connect to MongoDB
 connectDB();
 
 // routes
 app.use("/api/products", require("./src/routes/product.routes"));
+app.get("/", (req, res) => {
+    res.send("API is running...");
+});
 
+// ✅ Centralized Error Handler
 app.use((err, req, res, next) => {
+    // Handle CORS error
     if (err.message === "Not allowed by CORS") {
         return res.status(403).json({ message: "Blocked by CORS policy" });
     }
-    next(err);
-});
 
-// Test route
-app.get("/", (req, res) => {
-    res.send("API is running...");
+    // Handle Multer file size error
+    if (err.name === "MulterError" && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "Image must be less than 5MB" });
+    }
+
+    // Handle Invalid File Type (MIME)
+    if (
+        err.message.includes("Only JPG") ||
+        err.message.includes("Only PNG") ||
+        err.message.includes("Only WEBP")
+    ) {
+        return res.status(400).json({ message: err.message });
+    }
+
+    // Fallback for all other errors
+    console.error("Unhandled Error:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
 });
 
 // Start server
