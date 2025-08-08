@@ -6,7 +6,13 @@ const {
     getAllProducts,
 } = require("../controllers/product.controller");
 
-router.post("/", upload.single("image"), createProduct); // Accept image from FormData
-router.get("/", getAllProducts);
+const createRateLimiter = require("../middleware/rateLimiter");
+
+// 🛡️ Apply rate limiters
+const getLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 100 });
+const postLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+
+router.get("/", getLimiter, getAllProducts);
+router.post("/", postLimiter, upload.single("image"), createProduct); // Accept image from FormData
 
 module.exports = router;
