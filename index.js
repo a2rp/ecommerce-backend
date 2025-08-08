@@ -5,7 +5,27 @@ const cors = require("cors");
 const connectDB = require("./src/config/connectDB");
 
 const app = express();
-app.use(cors());
+// ✅ CORS Origin Whitelist
+const allowedOrigins = [
+    "http://localhost:5173", // local dev
+    "https://ecommerce-mern-store.netlify.app", // deployed Netlify
+    // Add more domains here if needed
+];
+// ✅ Custom CORS config
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            } else {
+                return callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+    })
+);
+
 app.use(express.json()); // For parsing JSON
 app.use(express.json({ limit: "10mb" }));
 app.use("/uploads", express.static("uploads"));
@@ -15,6 +35,13 @@ connectDB();
 
 // routes
 app.use("/api/products", require("./src/routes/product.routes"));
+
+app.use((err, req, res, next) => {
+    if (err.message === "Not allowed by CORS") {
+        return res.status(403).json({ message: "Blocked by CORS policy" });
+    }
+    next(err);
+});
 
 // Test route
 app.get("/", (req, res) => {
