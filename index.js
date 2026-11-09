@@ -9,6 +9,7 @@ const app = express();
 const allowedOrigins = [
     "http://localhost:5173",
     "https://ecommerce-mern-store.netlify.app",
+    "https://a2rp.github.io",
 ];
 
 app.use(
