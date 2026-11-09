@@ -3,12 +3,31 @@ const Product = require("../models/product.model");
 const createProduct = async (req, res) => {
     try {
         const { name, description, price, category } = req.body;
+        const normalizedName = typeof name === "string" ? name.trim() : "";
+        const normalizedDescription =
+            typeof description === "string" ? description.trim() : "";
+        const normalizedCategory =
+            typeof category === "string" ? category.trim() : "";
+        const numericPrice =
+            typeof price === "number"
+                ? price
+                : typeof price === "string" && price.trim() !== ""
+                  ? Number(price.trim())
+                  : NaN;
 
-        // 🛡️ Validate fields
-        if (!name || !description || !price || !category) {
+        if (
+            !normalizedName ||
+            !normalizedDescription ||
+            !normalizedCategory ||
+            normalizedName.length > 120 ||
+            normalizedDescription.length > 5000 ||
+            normalizedCategory.length > 80 ||
+            !Number.isFinite(numericPrice) ||
+            numericPrice < 0
+        ) {
             return res.status(400).json({
                 success: false,
-                message: "All fields are required",
+                message: "Name, description, category, and a valid non-negative price are required",
             });
         }
 
@@ -19,15 +38,14 @@ const createProduct = async (req, res) => {
             });
         }
 
-        // ✅ Get Cloudinary image URL
         const imagePath = req.file.path;
 
         const product = new Product({
-            name,
-            description,
-            price,
-            category,
-            image: imagePath, // stored as cloudinary URL
+            name: normalizedName,
+            description: normalizedDescription,
+            price: numericPrice,
+            category: normalizedCategory,
+            image: imagePath,
         });
 
         await product.save();
@@ -38,14 +56,17 @@ const createProduct = async (req, res) => {
             product,
         });
     } catch (err) {
-        console.log("Backend Error:", err.message);
+        if (err.name === "ValidationError" || err.name === "CastError") {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+
+        console.error("Product creation failed:", err);
         return res.status(500).json({
             success: false,
-            message:
-                err.message.includes("Only JPG") ||
-                err.message.includes("File too large")
-                    ? err.message
-                    : "Internal Server Error",
+            message: "Internal Server Error",
         });
     }
 };
@@ -55,7 +76,11 @@ const getAllProducts = async (req, res) => {
         const products = await Product.find().sort({ createdAt: -1 });
         res.status(200).json({ success: true, products });
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error("Product listing failed:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
 };
 

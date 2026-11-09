@@ -1,15 +1,26 @@
 {
-    "name": "backend",
+    "name": "ecommerce-backend",
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js"
     },
-    "keywords": [],
     "author": "",
     "license": "ISC",
-    "description": "",
+    "description": "Express and MongoDB product API with Cloudinary image uploads.",
+    "keywords": [
+        "ecommerce",
+        "express",
+        "mongodb",
+        "mongoose",
+        "product-api",
+        "cloudinary",
+        "image-upload"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
     "dependencies": {
         "cloudinary": "^1.41.3",
         "cors": "^2.8.5",

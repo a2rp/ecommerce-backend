@@ -10,7 +10,9 @@ const createRateLimiter = (options = {}) => {
             message: "Too many requests from your IP. Please try again later.",
         },
         keyGenerator: (req, res) => {
-            return `${ipKeyGenerator(req)}-${req.originalUrl}`; // ✅ combine IP + route
+            const ip = ipKeyGenerator(req.ip);
+            const route = `${req.baseUrl}${req.path}`;
+            return `${ip}-${route}`;
         },
         standardHeaders: true,
         legacyHeaders: false,

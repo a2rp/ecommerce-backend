@@ -6,22 +6,30 @@ const productSchema = new mongoose.Schema(
         name: {
             type: String,
             required: [true, "Please provide product name"],
+            trim: true,
+            maxlength: 120,
         },
         description: {
             type: String,
             required: true,
+            trim: true,
+            maxlength: 5000,
         },
         price: {
             type: Number,
             required: [true, "Please provide product price"],
+            min: [0, "Product price cannot be negative"],
         },
         category: {
             type: String,
             required: true,
+            trim: true,
+            maxlength: 80,
         },
         image: {
-            type: String, // base64 or URL
+            type: String,
             required: true,
+            trim: true,
         },
     },
     {

@@ -1,100 +1,83 @@
-# 🛒 MERN E-Commerce Backend
+# Ecommerce Backend
 
-This is the backend of a simple eCommerce product manager built with **Node.js + Express + MongoDB**. It supports product creation (with image upload) and fetching all products.
+A Node.js and Express API for managing ecommerce products with MongoDB and Mongoose. Product images are uploaded to Cloudinary and returned as hosted URLs.
 
----
+## Features
 
-## 🚀 Features
+- Create products with a name, description, non-negative price, category, and image
+- List products with newest items first
+- Validate image type and limit uploads to 5 MB
+- Apply per-IP rate limits to product reads and writes
+- Start accepting requests after the MongoDB connection is ready
 
--   Add product with:
-    -   Name
-    -   Description
-    -   Price
-    -   Category
-    -   Image (stored in `uploads/` folder)
--   Get all products
--   Image upload using `multer`
--   MongoDB model with timestamps
+## Requirements
 
----
+- Node.js 18 or newer
+- MongoDB connection string
+- Cloudinary account credentials for image uploads
 
-## 📦 Tech Stack
-
--   Node.js
--   Express.js
--   MongoDB + Mongoose
--   Multer (file uploads)
--   dotenv
--   CORS
-
----
-
-## 🧪 API Endpoints
-
-### `POST /api/products`
-
-Add a new product.
-
-**Request type**: `multipart/form-data`  
-**Fields**:
-
--   `name` (string)
--   `description` (string)
--   `price` (number)
--   `category` (string)
--   `image` (file)
-
----
-
-### `GET /api/products`
-
-Fetch all products (sorted by newest first)
-
----
-
-## 🔧 Setup & Run
+## Run locally
 
 ```bash
-cd backend
 npm install
+cp .env.example .env
 ```
 
-Create a .env file:
+Add your MongoDB and Cloudinary values to `.env`, then start the server:
 
-```
-PORT=1198
-MONGO_URI=mongodb://localhost:27017/ecommerce
-```
-
-Start the server:
-
-```
+```bash
 npm run dev
 ```
 
-Make sure uploads/ folder exists (for image saving):
+The API listens on port `5000` by default. Set `PORT` to change it.
 
-Serve image URL on frontend like:
+## Configuration
 
+| Variable | Required | Description |
+| --- | --- | --- |
+| `MONGO_URI` | Yes | MongoDB connection string |
+| `CLOUDINARY_CLOUD_NAME` | Yes for uploads | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Yes for uploads | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Yes for uploads | Cloudinary API secret |
+| `PORT` | No | HTTP port; defaults to `5000` |
+
+## API
+
+### `GET /`
+
+Returns a short API health message. The server only starts listening after MongoDB connects.
+
+### `GET /api/products`
+
+Returns all products, newest first:
+
+```json
+{
+  "success": true,
+  "products": []
+}
 ```
-http://localhost:1198/uploads/<filename>
 
-```
+### `POST /api/products`
 
-product.image = "/uploads/xyz.jpg"
+Send `multipart/form-data` with these fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | Text | Required |
+| `description` | Text | Required |
+| `price` | Number | Required; must be zero or greater |
+| `category` | Text | Required |
+| `image` | File | Required; JPG, PNG, or WEBP, up to 5 MB |
+
+The uploaded image is stored in the `ecommerce-products` Cloudinary folder. Its hosted URL is saved with the product.
+
+## Rate limits
+
+Product listing is limited to 100 requests per IP every 10 minutes. Product creation is limited to 10 requests per IP every 15 minutes. The built-in store is per process, so limits reset when the server restarts and are not shared across multiple server instances.
 
 ## Links
 
-- Portfolio: [https://www.ashishranjan.net](https://www.ashishranjan.net)
-- GitHub: [https://github.com/a2rp](https://github.com/a2rp)
-- CodePen: [https://codepen.io/ash1198](https://codepen.io/ash1198)
-- LinkedIn: [https://www.linkedin.com/in/aashishranjan](https://www.linkedin.com/in/aashishranjan)
-- Facebook: [https://www.facebook.com/theash.ashish/](https://www.facebook.com/theash.ashish/)
-- YouTube: [https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1](https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1)
-- Email: [ash.ranjan09@gmail.com](mailto:ash.ranjan09@gmail.com)
-
-## Support
-
-- Support: [https://a2rp-donation-page.netlify.app/](https://a2rp-donation-page.netlify.app/)
-- Buy Me A Coffee: [https://buymeacoffee.com/a2rp](https://buymeacoffee.com/a2rp)
-- Patreon: [https://patreon.com/a2rp](https://patreon.com/a2rp)
+- Portfolio: [ashishranjan.net](https://www.ashishranjan.net/)
+- GitHub: [a2rp](https://github.com/a2rp)
+- LinkedIn: [Ashish Ranjan](https://www.linkedin.com/in/aashishranjan)

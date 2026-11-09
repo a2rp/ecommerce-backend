@@ -25,11 +25,7 @@ app.use(
     })
 );
 
-app.use(express.json()); // For parsing JSON
-app.use(express.json({ limit: "10mb" }));
-
-// Connect to MongoDB
-connectDB();
+app.use(express.json({ limit: "1mb" }));
 
 // routes
 app.use("/api/products", require("./src/routes/product.routes"));
@@ -39,6 +35,10 @@ app.get("/", (req, res) => {
 
 // ✅ Centralized Error Handler
 app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ message: "Invalid JSON request body" });
+    }
+
     // Handle CORS error
     if (err.message === "Not allowed by CORS") {
         return res.status(403).json({ message: "Blocked by CORS policy" });
@@ -50,19 +50,33 @@ app.use((err, req, res, next) => {
     }
 
     // Handle Invalid File Type (MIME)
-    if (
+    if (typeof err.message === "string" && (
         err.message.includes("Only JPG") ||
         err.message.includes("Only PNG") ||
         err.message.includes("Only WEBP")
-    ) {
+    )) {
         return res.status(400).json({ message: err.message });
     }
 
     // Fallback for all other errors
-    console.error("Unhandled Error:", err.message);
+    console.error("Unhandled request error:", err);
     res.status(500).json({ message: "Internal Server Error" });
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async () => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    } catch (err) {
+        console.error(`Unable to start server: ${err.message}`);
+        process.exit(1);
+    }
+};
+
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = app;
